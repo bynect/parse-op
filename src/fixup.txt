@@ -1,0 +1,11 @@
+A op1 op2 B
+
+by default is parsed as:
+A op1 (op2 B)
+
+if op1 is postfix:
+(A op1) op2 B
+
+Valid combinations:
+	op1 infix, op2 prefix
+	op1 postfix, op2 infix

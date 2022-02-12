@@ -21,22 +21,6 @@ fn backtrack<I: Iterator<Item = char>>(lex: &mut Lexer<I>, t: Token) {
     lex.1 = Some(t);
 }
 
-//fn peek_eof<I: Iterator<Item = char>>(lex: &mut Lexer<I>) -> bool {
-//    let it = &mut lex.0;
-//    it.peek().is_none() && lex.1.is_none()
-//}
-//
-//fn peek_char_or_token<I: Iterator<Item = char>>(lex: &mut Lexer<I>, c: char, t: Token) -> bool {
-//    let it = &mut lex.0;
-//    if let Some(&c_) = it.peek() {
-//        c_ == c
-//    } else if let Some(t_) = &lex.1 {
-//        *t_ == t
-//    } else {
-//        false
-//    }
-//}
-
 fn token<I: Iterator<Item = char>>(lex: &mut Lexer<I>) -> Result<Token, String> {
     if let Some(t) = lex.1.take() {
         return Ok(t);
@@ -142,14 +126,15 @@ fn expect<I: Iterator<Item = char>>(lex: &mut Lexer<I>, e: Token) -> Result<Toke
     }
 }
 
-fn peek<I: Iterator<Item = char>>(lex: &mut Lexer<I>) -> Result<Token, String> {
-    Ok(if let Some(t) = &lex.1 {
-        t.clone()
-    } else {
-        let t = token(lex)?;
+fn peek<I: Iterator<Item = char>>(lex: &mut Lexer<I>) -> Option<Token> {
+    if let Some(t) = &lex.1 {
+        Some(t.clone())
+    } else if let Ok(t) = token(lex) {
         backtrack(lex, t.clone());
-        t
-    })
+        Some(t)
+    } else {
+        None
+    }
 }
 
 fn parse_expr<I: Iterator<Item = char>>(lex: &mut Lexer<I>) -> Result<Expr, String> {
@@ -169,8 +154,8 @@ fn parse_expr<I: Iterator<Item = char>>(lex: &mut Lexer<I>) -> Result<Expr, Stri
 
     loop {
         match token(lex)? {
-            Token::Op(op) => match peek(lex)? {
-                Token::Eof | Token::RParen => {
+            Token::Op(op) => match peek(lex) {
+                Some(Token::Eof | Token::RParen) => {
                     e1 = Expr::PostfixOp(op, Box::new(e1));
                 }
                 _ => {

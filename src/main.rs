@@ -122,8 +122,15 @@ fn test() {
 }
 
 fn main() -> Result<(), io::Error> {
-    let mut map = HashMap::new();
-    map.insert("a".to_owned(), OpInfo::new("+", Infix(Left), vec![]));
+    let ops = vec![
+        OpInfo::new("+", Infix(Left), vec![]),
+        OpInfo::new("-", Infix(Right), vec![]),
+        OpInfo::new("*", Prefix, vec![]),
+        OpInfo::new("&", Postfix, vec![]),
+        OpInfo::new("%", Infix(Non), vec![]),
+    ];
+
+    let map = fixup::calculate_poset(ops).expect("Invalid operators");
 
     let mut line = String::new();
     loop {
@@ -153,6 +160,10 @@ fn main() -> Result<(), io::Error> {
                     Ok(e) => {
                         println!("// Resolved Raw");
                         println!("{:?}", e);
+
+                        println!("// Resolved Sexpr");
+                        e.print_sexpr();
+                        println!("\n");
 
                         println!("// Resolved Dot");
                         print!("// {}", line);
